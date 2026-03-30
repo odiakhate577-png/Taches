@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f0e11">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mon Espace">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Mon Espace</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f0e11;--surface:#18171c;--card:#201f26;--border:#2e2c38;
+    --accent:#f0c060;--accent2:#7c6af7;--orange:#f07830;
+    --green:#5ecf8a;--red:#f06060;--text:#e8e5f0;--muted:#7a778e;--radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;}
+  header{background:var(--surface);border-bottom:1px solid var(--border);padding:16px 20px;
+    display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+  header h1{font-family:'Playfair Display',serif;font-size:1.25rem;color:var(--accent);}
+  .date-pill{background:var(--card);border:1px solid var(--border);padding:5px 12px;
+    border-radius:30px;font-size:.75rem;color:var(--muted);}
+  .tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;}
+  .tab-btn{background:none;border:none;cursor:pointer;color:var(--muted);font-family:'DM Sans',sans-serif;
+    font-size:.85rem;padding:13px 18px;white-space:nowrap;border-bottom:2px solid transparent;
+    transition:all .2s;flex-shrink:0;}
+  .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+  .page{display:none;padding:20px;max-width:860px;margin:0 auto;}
+  .page.active{display:block;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:18px;}
+  .card-title{font-family:'Playfair Display',serif;font-size:1rem;color:var(--text);margin-bottom:14px;}
+  .lbl{font-size:.73rem;color:var(--muted);margin-bottom:4px;}
+  .irow{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
+  .igroup{flex:1;min-width:110px;display:flex;flex-direction:column;}
+  input[type=text],input[type=number],input[type=date],select{
+    background:var(--surface);border:1px solid var(--border);border-radius:8px;
+    color:var(--text);font-family:'DM Sans',sans-serif;font-size:.86rem;
+    padding:9px 12px;outline:none;transition:border .2s;width:100%;}
+  input:focus,select:focus{border-color:var(--accent2);}
+  .btn{border:none;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;
+    font-size:.86rem;font-weight:500;padding:9px 16px;transition:opacity .15s,transform .1s;}
+  .btn:hover{opacity:.85;transform:translateY(-1px);}
+  .btn-gold{background:var(--accent);color:#111;}
+  .btn-purple{background:var(--accent2);color:#fff;}
+  .btn-danger{background:var(--red);color:#fff;padding:5px 10px;font-size:.78rem;}
+  .btn-ghost{background:var(--surface);border:1px solid var(--border);color:var(--muted);}
+  .sgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:18px;}
+  .sbox{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;}
+  .sval{font-family:'Playfair Display',serif;font-size:1.4rem;margin-bottom:3px;}
+  .slbl{font-size:.72rem;color:var(--muted);}
+  .cgreen{color:var(--green);}.cred{color:var(--red);}.cgold{color:var(--accent);}.corange{color:var(--orange);}
+  .pbar-bg{background:var(--surface);border-radius:20px;height:7px;overflow:hidden;margin-top:6px;}
+  .pbar{height:100%;border-radius:20px;transition:width .5s;}
+  .item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);animation:fadeIn .2s;}
+  .item:last-child{border-bottom:none;}
+  .ico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+  .ico-green{background:#112a1e;}.ico-red{background:#3a1515;}.ico-orange{background:#2e1a08;}
+  .meta{flex:1;min-width:0;}
+  .meta-main{font-size:.87rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .meta-sub{font-size:.72rem;color:var(--muted);}
+  .amount{font-family:'Playfair Display',serif;font-size:.95rem;white-space:nowrap;flex-shrink:0;}
+  .tchk{width:20px;height:20px;border-radius:50%;border:2px solid var(--accent2);cursor:pointer;
+    flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:background .15s;}
+  .tchk.done{background:var(--green);border-color:var(--green);}
+  .tchk.done::after{content:'checkmark';color:#111;font-size:.68rem;font-weight:700;}
+  .ttxt{flex:1;font-size:.88rem;}
+  .ttxt.done{text-decoration:line-through;color:var(--muted);}
+  .tag{font-size:.7rem;padding:2px 7px;border-radius:20px;background:var(--surface);color:var(--muted);flex-shrink:0;}
+  .phigh{background:#3a1515;color:var(--red);}.pmed{background:#2e2510;color:var(--accent);}.plow{background:#112a1e;color:var(--green);}
+  .frow{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px;}
+  .fbtn{background:var(--surface);border:1px solid var(--border);border-radius:20px;
+    color:var(--muted);cursor:pointer;font-size:.75rem;padding:5px 12px;transition:all .15s;}
+  .fbtn.active{background:var(--accent2);border-color:var(--accent2);color:#fff;}
+  .month-bar{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+  .month-bar select{flex:1;}
+  .bilan{background:linear-gradient(135deg,#1a1830,#201f26);border:1px solid var(--accent2);
+    border-radius:var(--radius);padding:18px;margin-bottom:18px;}
+  .bilan-title{font-family:'Playfair Display',serif;font-size:1rem;color:var(--accent2);margin-bottom:12px;}
+  .calc-result{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+    padding:12px 16px;margin-bottom:12px;display:none;}
+  .empty{text-align:center;color:var(--muted);padding:24px 0;font-size:.85rem;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+  @media(max-width:480px){.irow{flex-direction:column;}.sgrid{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>&#10022; Mon Espace</h1>
+  <span class="date-pill" id="headerDate"></span>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('tasks',this)">&#128203; Taches</button>
+  <button class="tab-btn" onclick="switchTab('budget',this)">&#128176; Budget</button>
+  <button class="tab-btn" onclick="switchTab('tricycle',this)">&#128762; Tricycle</button>
+  <button class="tab-btn" onclick="switchTab('projets',this)">&#127919; Projets</button>
+</div>
+
+<!-- TACHES -->
+<div id="page-tasks" class="page active">
+  <div class="card">
+    <div class="card-title">Nouvelle tache</div>
+    <div class="irow">
+      <div class="igroup" style="flex:2;min-width:160px;">
+        <div class="lbl">Description</div>
+        <input type="text" id="taskTitle" placeholder="Ex: Appeler le fournisseur...">
+      </div>
+      <div class="igroup">
+        <div class="lbl">Categorie</div>
+        <select id="taskCat">
+          <option>Perso</option><option>Travail</option>
+          <option>Courses</option><option>Sante</option><option>Autre</option>
+        </select>
+      </div>
+    </div>
+    <div class="irow">
+      <div class="igroup">
+        <div class="lbl">Priorite</div>
+        <select id="taskPrio">
+          <option value="haute">Haute priorite</option>
+          <option value="moyenne" selected>Moyenne</option>
+          <option value="basse">Basse</option>
+        </select>
+      </div>
+      <div class="igroup">
+        <div class="lbl">Date</div>
+        <input type="date" id="taskDate">
+      </div>
+      <div class="igroup" style="justify-content:flex-end;">
+        <div class="lbl">&nbsp;</div>
+        <button class="btn btn-gold" onclick="addTask()">+ Ajouter</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sgrid">
+    <div class="sbox"><div class="sval cgold" id="stTotal">0</div><div class="slbl">Total</div></div>
+    <div class="sbox"><div class="sval cgreen" id="stDone">0</div><div class="slbl">Faites</div></div>
+    <div class="sbox"><div class="sval cred" id="stPend">0</div><div class="slbl">En attente</div></div>
+  </div>
+  <div class="pbar-bg" style="margin-bottom:18px;"><div class="pbar" id="taskProg" style="background:var(--accent);width:0%"></div></div>
+
+  <div class="frow">
+    <button class="fbtn active" onclick="filterTasks('all',this)">Toutes</button>
+    <button class="fbtn" onclick="filterTasks('pending',this)">En attente</button>
+    <button class="fbtn" onclick="filterTasks('done',this)">Completees</button>
+    <button class="fbtn" onclick="filterTasks('haute',this)">Haute priorite</button>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div class="card-title" style="margin:0">Mes taches</div>
+      <button class="btn btn-danger" onclick="clearDone()">Suppr. completees</button>
+    </div>
+    <div id="taskList"><div class="empty">Aucune tache. Commencez !</div></div>
+  </div>
+</div>
+
+<!-- BUDGET PERSO -->
+<div id="page-budget" class="page">
+  <div class="card">
+    <div class="card-title">Nouvelle transaction</div>
+    <div class="irow">
+      <div class="igroup">
+        <div class="lbl">Type</div>
+        <select id="txType">
+          <option value="income">Revenu / Entree</option>
+          <option value="expense">Depense</option>
+        </select>
+      </div>
+      <div class="igroup" style="flex:2;min-width:140px;">
+        <div class="lbl">Libelle</div>
+        <input type="text" id="txLabel" placeholder="Ex: Loyer, Salaire...">
+      </div>
+    </div>
+    <div class="irow">
+      <div class="igroup">
+        <div class="lbl">Montant (FCFA)</div>
+        <input type="number" id="txAmount" placeholder="0" min="0">
+      </div>
+      <div class="igroup">
+        <div class="lbl">Categorie</div>
+        <input type="text" id="txCat" placeholder="Ex: Loyer, Transport..." list="catSug">
+        <datalist id="catSug">
+          <option value="Alimentation"><option value="Transport"><option value="Loyer">
+          <option value="Sante"><option value="Loisirs"><option value="Epargne">
+          <option value="Salaire"><option value="Telephone"><option value="Electricite">
+        </datalist>
+      </div>
+      <div class="igroup">
+        <div class="lbl">Date</div>
+        <input type="date" id="txDate">
+      </div>
+      <div class="igroup" style="justify-content:flex-end;">
+        <div class="lbl">&nbsp;</div>
+        <button class="btn btn-purple" onclick="addTx()">+ Ajouter</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sgrid">
+    <div class="sbox"><div class="sval cgreen" id="bIncome">0</div><div class="slbl">Revenus</div></div>
+    <div class="sbox"><div class="sval cred" id="bExpense">0</div><div class="slbl">Depenses</div></div>
+    <div class="sbox"><div class="sval" id="bBalance">0</div><div class="slbl">Solde net</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Repartition des depenses</div>
+    <div id="catList"><div class="empty">Aucune depense.</div></div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div class="card-title" style="margin:0">Historique</div>
+      <button class="btn btn-danger" onclick="clearAllTx()">Tout effacer</button>
+    </div>
+    <div class="frow">
+      <button class="fbtn active" onclick="filterTx('all',this)">Toutes</button>
+      <button class="fbtn" onclick="filterTx('income',this)">Revenus</button>
+      <button class="fbtn" onclick="filterTx('expense',this)">Depenses</button>
+    </div>
+    <div id="txList"><div class="empty">Aucune transaction.</div></div>
+  </div>
+</div>
+
+<!-- TRICYCLE -->
+<div id="page-tricycle" class="page">
+
+  <div class="month-bar">
+    <span style="font-size:.8rem;color:var(--muted);white-space:nowrap;">Mois :</span>
+    <select id="triMoisSelect" onchange="renderTricycle()"></select>
+  </div>
+
+  <div class="bilan">
+    <div class="bilan-title">Bilan mensuel du Tricycle</div>
+    <div class="sgrid" style="margin-bottom:0;">
+      <div class="sbox"><div class="sval cgold" id="triTotalSacs">0</div><div class="slbl">Sacs livres</div></div>
+      <div class="sbox"><div class="sval cgreen" id="triTotalGain">0 F</div><div class="slbl">Total gagne</div></div>
+      <div class="sbox"><div class="sval cred" id="triTotalCharge">0 F</div><div class="slbl">Total charges</div></div>
+      <div class="sbox"><div class="sval" id="triNetMois">0 F</div><div class="slbl">Benefice net</div></div>
+    </div>
+  </div>
+
+  <!-- Nouvelle livraison -->
+  <div class="card" style="border-color:#3a3010;">
+    <div class="card-title" style="color:var(--accent);">Nouvelle livraison de farine</div>
+    <div class="irow">
+      <div class="igroup">
+        <div class="lbl">Nombre de sacs</div>
+        <input type="number" id="livSacs" placeholder="Ex: 50" min="0" oninput="calcLiv()">
+      </div>
+      <div class="igroup">
+        <div class="lbl">Prix par sac (FCFA)</div>
+        <input type="number" id="livPrix" placeholder="Ex: 500" min="0" oninput="calcLiv()">
+      </div>
+      <div class="igroup">
+        <div class="lbl">Date</div>
+        <input type="date" id="livDate">
+      </div>
+    </div>
+    <div class="calc-result" id="livCalcBox">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <div>
+          <div style="font-size:.73rem;color:var(--muted);">Montant calcule</div>
+          <div id="livCalcVal" style="font-family:'Playfair Display',serif;font-size:1.7rem;color:var(--accent);"></div>
+        </div>
+        <div id="livCalcDetail" style="font-size:.8rem;color:var(--muted);"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn btn-gold" onclick="addLivraison()">+ Enregistrer livraison</button>
+      <button class="btn btn-ghost" style="padding:9px 16px;font-size:.86rem;" onclick="resetLiv()">Effacer</button>
+    </div>
+  </div>
+
+  <!-- Nouvelle charge -->
+  <div class="card" style="border-color:#3a1510;">
+    <div class="card-title" style="color:var(--red);">Nouvelle charge du tricycle</div>
+    <div class="irow">
+      <div class="igroup" style="flex:2;min-width:140px;">
+        <div class="lbl">Libelle de la charge</div>
+        <input type="text" id="chLabel" placeholder="Ex: Carburant, Reparation, Vidange..." list="chargeLst">
+        <datalist id="chargeLst">
+          <option value="Carburant"><option value="Reparation"><option value="Vidange">
+          <option value="Pneu"><option value="Pieces detachees"><option value="Lavage">
+        </datalist>
+      </div>
+      <div class="igroup">
+        <div class="lbl">Montant (FCFA)</div>
+        <input type="number" id="chAmount" placeholder="0" min="0">
+      </div>
+      <div class="igroup">
+        <div class="lbl">Date</div>
+        <input type="date" id="chDate">
+      </div>
+      <div class="igroup" style="justify-content:flex-end;">
+        <div class="lbl">&nbsp;</div>
+        <button class="btn" style="background:var(--red);color:#fff;padding:9px 16px;font-size:.86rem;" onclick="addCharge()">+ Ajouter</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Historique livraisons -->
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div class="card-title" style="margin:0;">Livraisons du mois</div>
+      <button class="btn btn-danger" onclick="clearLivs()">Effacer ce mois</button>
+    </div>
+    <div id="livList"><div class="empty">Aucune livraison ce mois-ci.</div></div>
+  </div>
+
+  <!-- Historique charges -->
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div class="card-title" style="margin:0;">Charges du mois</div>
+      <button class="btn btn-danger" onclick="clearCharges()">Effacer ce mois</button>
+    </div>
+    <div id="chList"><div class="empty">Aucune charge ce mois-ci.</div></div>
+  </div>
+
+</div>
+
+<!-- PROJETS / DEPENSES FUTURES -->
+<div id="page-projets" class="page">
+
+  <div class="card" style="border-color:#1e2840;">
+    <div class="card-title" style="color:var(--accent2);">Nouvelle depense planifiee</div>
+    <div class="irow">
+      <div class="igroup" style="flex:2;min-width:150px;">
+        <div class="lbl">Nom de la depense</div>
+        <input type="text" id="prjLabel" placeholder="Ex: Nouveau telephone, Reparation maison...">
+      </div>
+      <div class="igroup">
+        <div class="lbl">Montant total necessaire (FCFA)</div>
+        <input type="number" id="prjTotal" placeholder="0" min="0" oninput="calcProjet()">
+      </div>
+    </div>
+    <div class="irow">
+      <div class="igroup">
+        <div class="lbl">Somme deja disponible (FCFA)</div>
+        <input type="number" id="prjDispo" placeholder="0" min="0" oninput="calcProjet()">
+      </div>
+      <div class="igroup">
+        <div class="lbl">Date cible (optionnel)</div>
+        <input type="date" id="prjDate">
+      </div>
+      <div class="igroup" style="justify-content:flex-end;">
+        <div class="lbl">&nbsp;</div>
+        <button class="btn btn-purple" onclick="addProjet()">+ Ajouter</button>
+      </div>
+    </div>
+    <!-- Preview calcul -->
+    <div id="prjCalcBox" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-top:4px;">
+      <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;">
+        <div>
+          <div class="lbl">Deja disponible</div>
+          <div id="prjCalcDispo" style="font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--green);"></div>
+        </div>
+        <div style="font-size:1.2rem;color:var(--muted);">&#8594;</div>
+        <div>
+          <div class="lbl">Il manque encore</div>
+          <div id="prjCalcManque" style="font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--red);"></div>
+        </div>
+        <div>
+          <div class="lbl">Avancement</div>
+          <div id="prjCalcPct" style="font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--accent);"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div class="card-title" style="margin:0;">Mes depenses planifiees</div>
+      <button class="btn btn-danger" onclick="clearProjets()">Tout effacer</button>
+    </div>
+    <div id="prjList"><div class="empty">Aucune depense planifiee.</div></div>
+  </div>
+
+</div>
+
+<script>
+var KEY_TASKS='ms2_tasks', KEY_TX='ms2_tx', KEY_LIV='ms2_livraisons', KEY_CH='ms2_charges';
+function load(k){ try{ return JSON.parse(localStorage.getItem(k))||[]; }catch(e){ return []; } }
+function save(k,d){ localStorage.setItem(k,JSON.stringify(d)); }
+
+var tasks=load(KEY_TASKS), transactions=load(KEY_TX), livraisons=load(KEY_LIV), charges=load(KEY_CH);
+var taskFilter='all', txFilter='all';
+
+function today(){ var d=new Date(); return d.toISOString().split('T')[0]; }
+function fmtDate(s){ if(!s) return ''; var p=s.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
+function fmtNum(n){ return Number(n).toLocaleString('fr-FR'); }
+function monthKey(s){ return s?s.slice(0,7):''; }
+
+(function init(){
+  var d=new Date();
+  var days=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+  var months=['Janvier','Fevrier','Mars','Avril','Mai','Juin','Juillet','Aout','Septembre','Octobre','Novembre','Decembre'];
+  document.getElementById('headerDate').textContent=days[d.getDay()]+' '+d.getDate()+' '+months[d.getMonth()]+' '+d.getFullYear();
+  document.getElementById('taskDate').value=today();
+  document.getElementById('txDate').value=today();
+  document.getElementById('livDate').value=today();
+  document.getElementById('chDate').value=today();
+  buildMonthSelector();
+})();
+
+function switchTab(tab,btn){
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('page-'+tab).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ========== TACHES ==========
+function addTask(){
+  var t=document.getElementById('taskTitle').value.trim();
+  if(!t){ alert('Saisissez une tache.'); return; }
+  tasks.push({id:Date.now(),title:t,cat:document.getElementById('taskCat').value,
+    priority:document.getElementById('taskPrio').value,
+    date:document.getElementById('taskDate').value,done:false});
+  save(KEY_TASKS,tasks);
+  document.getElementById('taskTitle').value='';
+  renderTasks();
+}
+function toggleTask(id){
+  tasks=tasks.map(function(t){ if(t.id===id) t.done=!t.done; return t; });
+  save(KEY_TASKS,tasks); renderTasks();
+}
+function deleteTask(id){
+  tasks=tasks.filter(function(t){ return t.id!==id; });
+  save(KEY_TASKS,tasks); renderTasks();
+}
+function clearDone(){
+  tasks=tasks.filter(function(t){ return !t.done; });
+  save(KEY_TASKS,tasks); renderTasks();
+}
+function filterTasks(f,btn){
+  taskFilter=f;
+  document.querySelectorAll('#page-tasks .fbtn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active'); renderTasks();
+}
+function renderTasks(){
+  var total=tasks.length, done=tasks.filter(function(t){ return t.done; }).length;
+  document.getElementById('stTotal').textContent=total;
+  document.getElementById('stDone').textContent=done;
+  document.getElementById('stPend').textContent=total-done;
+  document.getElementById('taskProg').style.width=(total>0?Math.round(done/total*100):0)+'%';
+  var list=tasks.filter(function(t){
+    if(taskFilter==='done') return t.done;
+    if(taskFilter==='pending') return !t.done;
+    if(taskFilter==='haute') return t.priority==='haute';
+    return true;
+  });
+  var el=document.getElementById('taskList');
+  if(!list.length){ el.innerHTML='<div class="empty">Aucune tache.</div>'; return; }
+  var pc={haute:'phigh',moyenne:'pmed',basse:'plow'};
+  var pl={haute:'Haute',moyenne:'Moyenne',basse:'Basse'};
+  el.innerHTML=list.map(function(t){
+    return '<div class="item">'+
+      '<div class="tchk '+(t.done?'done':'')+'" onclick="toggleTask('+t.id+')">'+(t.done?'<span style="color:#111;font-size:.75rem;font-weight:700;">OK</span>':'')+'</div>'+
+      '<span class="ttxt '+(t.done?'done':'')+'">'+t.title+'</span>'+
+      (t.date?'<span class="tag">'+fmtDate(t.date)+'</span>':'')+
+      '<span class="tag">'+t.cat+'</span>'+
+      '<span class="tag '+pc[t.priority]+'">'+pl[t.priority]+'</span>'+
+      '<button class="btn btn-danger" onclick="deleteTask('+t.id+')">X</button>'+
+    '</div>';
+  }).join('');
+}
+
+// ========== BUDGET ==========
+function addTx(){
+  var lbl=document.getElementById('txLabel').value.trim();
+  var amt=parseFloat(document.getElementById('txAmount').value);
+  if(!lbl||isNaN(amt)||amt<=0){ alert('Libelle et montant requis.'); return; }
+  transactions.push({id:Date.now(),type:document.getElementById('txType').value,
+    label:lbl,amount:amt,
+    cat:document.getElementById('txCat').value.trim()||'Autre',
+    date:document.getElementById('txDate').value});
+  save(KEY_TX,transactions);
+  document.getElementById('txLabel').value='';
+  document.getElementById('txAmount').value='';
+  document.getElementById('txCat').value='';
+  renderBudget();
+}
+function deleteTx(id){
+  transactions=transactions.filter(function(t){ return t.id!==id; });
+  save(KEY_TX,transactions); renderBudget();
+}
+function clearAllTx(){
+  if(confirm('Effacer tout l\'historique budget ?')){ transactions=[]; save(KEY_TX,transactions); renderBudget(); }
+}
+function filterTx(f,btn){
+  txFilter=f;
+  document.querySelectorAll('#page-budget .fbtn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active'); renderBudget();
+}
+function renderBudget(){
+  var inc=transactions.filter(function(t){ return t.type==='income'; }).reduce(function(s,t){ return s+t.amount; },0);
+  var exp=transactions.filter(function(t){ return t.type==='expense'; }).reduce(function(s,t){ return s+t.amount; },0);
+  var bal=inc-exp;
+  document.getElementById('bIncome').textContent=fmtNum(inc)+' F';
+  document.getElementById('bExpense').textContent=fmtNum(exp)+' F';
+  var bel=document.getElementById('bBalance');
+  bel.textContent=fmtNum(bal)+' F';
+  bel.className='sval '+(bal>=0?'cgreen':'cred');
+  var cats={};
+  transactions.filter(function(t){ return t.type==='expense'; }).forEach(function(t){
+    cats[t.cat]=(cats[t.cat]||0)+t.amount;
+  });
+  var cel=document.getElementById('catList'); var ckeys=Object.keys(cats);
+  if(!ckeys.length){ cel.innerHTML='<div class="empty">Aucune depense.</div>'; }
+  else{
+    cel.innerHTML=ckeys.sort(function(a,b){ return cats[b]-cats[a]; }).map(function(c){
+      var pct=exp>0?Math.round(cats[c]/exp*100):0;
+      var col=pct>50?'var(--red)':pct>25?'var(--accent)':'var(--accent2)';
+      return '<div style="margin-bottom:11px;">'+
+        '<div style="display:flex;justify-content:space-between;font-size:.83rem;margin-bottom:3px;">'+
+          '<span>'+c+'</span><span style="color:var(--muted)">'+fmtNum(cats[c])+' F ('+pct+'%)</span>'+
+        '</div>'+
+        '<div class="pbar-bg"><div class="pbar" style="background:'+col+';width:'+pct+'%"></div></div>'+
+      '</div>';
+    }).join('');
+  }
+  var fil=transactions.filter(function(t){
+    if(txFilter==='income') return t.type==='income';
+    if(txFilter==='expense') return t.type==='expense';
+    return true;
+  }).slice().reverse();
+  var lel=document.getElementById('txList');
+  if(!fil.length){ lel.innerHTML='<div class="empty">Aucune transaction.</div>'; return; }
+  lel.innerHTML=fil.map(function(t){
+    return '<div class="item">'+
+      '<div class="ico '+(t.type==='income'?'ico-green':'ico-red')+'">'+(t.type==='income'?'+':'-')+'</div>'+
+      '<div class="meta"><div class="meta-main">'+t.label+'</div>'+
+        '<div class="meta-sub">'+t.cat+(t.date?' - '+fmtDate(t.date):'')+'</div></div>'+
+      '<span class="amount '+(t.type==='income'?'cgreen':'cred')+'">'+(t.type==='income'?'+':'-')+fmtNum(t.amount)+' F</span>'+
+      '<button class="btn btn-danger" style="margin-left:8px;" onclick="deleteTx('+t.id+')">X</button>'+
+    '</div>';
+  }).join('');
+}
+
+// ========== TRICYCLE ==========
+function buildMonthSelector(){
+  var sel=document.getElementById('triMoisSelect');
+  var prev=sel.value;
+  var set={};
+  set[today().slice(0,7)]=1;
+  livraisons.forEach(function(l){ if(l.date) set[monthKey(l.date)]=1; });
+  charges.forEach(function(c){ if(c.date) set[monthKey(c.date)]=1; });
+  var keys=Object.keys(set).sort().reverse();
+  var mnames=['Janvier','Fevrier','Mars','Avril','Mai','Juin','Juillet','Aout','Septembre','Octobre','Novembre','Decembre'];
+  sel.innerHTML=keys.map(function(k){
+    var p=k.split('-');
+    return '<option value="'+k+'">'+mnames[parseInt(p[1])-1]+' '+p[0]+'</option>';
+  }).join('');
+  sel.value=(prev&&keys.indexOf(prev)>=0)?prev:keys[0];
+}
+function getCurrentMois(){ return document.getElementById('triMoisSelect').value; }
+
+function calcLiv(){
+  var sacs=parseFloat(document.getElementById('livSacs').value);
+  var prix=parseFloat(document.getElementById('livPrix').value);
+  var box=document.getElementById('livCalcBox');
+  if(!isNaN(sacs)&&!isNaN(prix)&&sacs>0&&prix>0){
+    var total=sacs*prix;
+    document.getElementById('livCalcVal').textContent=fmtNum(total)+' FCFA';
+    document.getElementById('livCalcDetail').textContent=sacs+' sacs x '+fmtNum(prix)+' FCFA';
+    box.style.display='block';
+  } else { box.style.display='none'; }
+}
+function resetLiv(){
+  ['livSacs','livPrix'].forEach(function(id){ document.getElementById(id).value=''; });
+  document.getElementById('livCalcBox').style.display='none';
+}
+function addLivraison(){
+  var sacs=parseFloat(document.getElementById('livSacs').value);
+  var prix=parseFloat(document.getElementById('livPrix').value);
+  if(isNaN(sacs)||isNaN(prix)||sacs<=0||prix<=0){ alert('Saisissez le nombre de sacs et le prix.'); return; }
+  livraisons.push({
+    id:Date.now(), sacs:sacs, prix:prix, total:sacs*prix,
+    date:document.getElementById('livDate').value
+  });
+  save(KEY_LIV,livraisons);
+  resetLiv();
+  buildMonthSelector();
+  renderTricycle();
+}
+function deleteLiv(id){
+  livraisons=livraisons.filter(function(l){ return l.id!==id; });
+  save(KEY_LIV,livraisons); renderTricycle();
+}
+function clearLivs(){
+  var mois=getCurrentMois();
+  if(confirm('Effacer les livraisons de ce mois ?')){
+    livraisons=livraisons.filter(function(l){ return monthKey(l.date)!==mois; });
+    save(KEY_LIV,livraisons); renderTricycle();
+  }
+}
+function addCharge(){
+  var lbl=document.getElementById('chLabel').value.trim();
+  var amt=parseFloat(document.getElementById('chAmount').value);
+  if(!lbl||isNaN(amt)||amt<=0){ alert('Libelle et montant requis.'); return; }
+  charges.push({id:Date.now(),label:lbl,amount:amt,date:document.getElementById('chDate').value});
+  save(KEY_CH,charges);
+  document.getElementById('chLabel').value='';
+  document.getElementById('chAmount').value='';
+  buildMonthSelector();
+  renderTricycle();
+}
+function deleteCharge(id){
+  charges=charges.filter(function(c){ return c.id!==id; });
+  save(KEY_CH,charges); renderTricycle();
+}
+function clearCharges(){
+  var mois=getCurrentMois();
+  if(confirm('Effacer les charges de ce mois ?')){
+    charges=charges.filter(function(c){ return monthKey(c.date)!==mois; });
+    save(KEY_CH,charges); renderTricycle();
+  }
+}
+function renderTricycle(){
+  var mois=getCurrentMois();
+  var mLivs=livraisons.filter(function(l){ return monthKey(l.date)===mois; });
+  var mChs=charges.filter(function(c){ return monthKey(c.date)===mois; });
+  var totalSacs=mLivs.reduce(function(s,l){ return s+l.sacs; },0);
+  var totalGain=mLivs.reduce(function(s,l){ return s+l.total; },0);
+  var totalCharge=mChs.reduce(function(s,c){ return s+c.amount; },0);
+  var net=totalGain-totalCharge;
+  document.getElementById('triTotalSacs').textContent=totalSacs;
+  document.getElementById('triTotalGain').textContent=fmtNum(totalGain)+' F';
+  document.getElementById('triTotalCharge').textContent=fmtNum(totalCharge)+' F';
+  var nel=document.getElementById('triNetMois');
+  nel.textContent=fmtNum(net)+' F';
+  nel.className='sval '+(net>=0?'cgreen':'cred');
+  // Livraisons
+  var lel=document.getElementById('livList');
+  if(!mLivs.length){ lel.innerHTML='<div class="empty">Aucune livraison ce mois-ci.</div>'; }
+  else{
+    lel.innerHTML=mLivs.slice().reverse().map(function(l){
+      return '<div class="item">'+
+        '<div class="ico ico-orange" style="font-size:.75rem;font-weight:600;color:var(--accent);">SAC</div>'+
+        '<div class="meta">'+
+          '<div class="meta-main">Livraison de farine</div>'+
+          '<div class="meta-sub">'+l.sacs+' sacs x '+fmtNum(l.prix)+' F'+(l.date?' - '+fmtDate(l.date):'')+'</div>'+
+        '</div>'+
+        '<span class="amount cgreen">+'+fmtNum(l.total)+' F</span>'+
+        '<button class="btn btn-danger" style="margin-left:8px;" onclick="deleteLiv('+l.id+')">X</button>'+
+      '</div>';
+    }).join('');
+  }
+  // Charges
+  var cel=document.getElementById('chList');
+  if(!mChs.length){ cel.innerHTML='<div class="empty">Aucune charge ce mois-ci.</div>'; }
+  else{
+    cel.innerHTML=mChs.slice().reverse().map(function(c){
+      return '<div class="item">'+
+        '<div class="ico ico-red" style="font-size:.75rem;font-weight:600;color:var(--red);">CHG</div>'+
+        '<div class="meta">'+
+          '<div class="meta-main">'+c.label+'</div>'+
+          '<div class="meta-sub">'+(c.date?fmtDate(c.date):'')+'</div>'+
+        '</div>'+
+        '<span class="amount cred">-'+fmtNum(c.amount)+' F</span>'+
+        '<button class="btn btn-danger" style="margin-left:8px;" onclick="deleteCharge('+c.id+')">X</button>'+
+      '</div>';
+    }).join('');
+  }
+}
+
+renderTasks();
+renderBudget();
+renderTricycle();
+
+// ========== PROJETS / DEPENSES FUTURES ==========
+var KEY_PRJ='ms2_projets';
+var projets=load(KEY_PRJ);
+
+function calcProjet(){
+  var total=parseFloat(document.getElementById('prjTotal').value);
+  var dispo=parseFloat(document.getElementById('prjDispo').value)||0;
+  var box=document.getElementById('prjCalcBox');
+  if(!isNaN(total)&&total>0){
+    var manque=Math.max(0,total-dispo);
+    var pct=Math.min(100,Math.round(dispo/total*100));
+    document.getElementById('prjCalcDispo').textContent=fmtNum(dispo)+' F';
+    document.getElementById('prjCalcManque').textContent=fmtNum(manque)+' F';
+    document.getElementById('prjCalcPct').textContent=pct+'%';
+    box.style.display='block';
+  } else { box.style.display='none'; }
+}
+
+function addProjet(){
+  var lbl=document.getElementById('prjLabel').value.trim();
+  var total=parseFloat(document.getElementById('prjTotal').value);
+  if(!lbl||isNaN(total)||total<=0){ alert('Nom et montant necessaires.'); return; }
+  var dispo=parseFloat(document.getElementById('prjDispo').value)||0;
+  projets.push({
+    id:Date.now(), label:lbl, total:total, dispo:dispo,
+    date:document.getElementById('prjDate').value
+  });
+  save(KEY_PRJ,projets);
+  document.getElementById('prjLabel').value='';
+  document.getElementById('prjTotal').value='';
+  document.getElementById('prjDispo').value='';
+  document.getElementById('prjDate').value='';
+  document.getElementById('prjCalcBox').style.display='none';
+  renderProjets();
+}
+
+function updateDispo(id,val){
+  var v=parseFloat(val)||0;
+  projets=projets.map(function(p){ if(p.id===id){ p.dispo=v; } return p; });
+  save(KEY_PRJ,projets);
+  renderProjets();
+}
+
+function deleteProjet(id){
+  projets=projets.filter(function(p){ return p.id!==id; });
+  save(KEY_PRJ,projets); renderProjets();
+}
+
+function clearProjets(){
+  if(confirm('Effacer toutes les depenses planifiees ?')){ projets=[]; save(KEY_PRJ,projets); renderProjets(); }
+}
+
+function renderProjets(){
+  var el=document.getElementById('prjList');
+  if(!projets.length){ el.innerHTML='<div class="empty">Aucune depense planifiee.</div>'; return; }
+  el.innerHTML=projets.map(function(p){
+    var manque=Math.max(0,p.total-p.dispo);
+    var pct=Math.min(100,Math.round(p.dispo/p.total*100));
+    var done=manque===0;
+    var barCol=done?'var(--green)':pct>60?'var(--accent)':pct>30?'var(--accent2)':'var(--red)';
+    var statusTxt=done?'<span style="color:var(--green);font-size:.75rem;font-weight:600;">FINANCE</span>':
+      '<span style="color:var(--red);font-size:.75rem;">manque <b>'+fmtNum(manque)+' F</b></span>';
+    return '<div style="padding:14px 0;border-bottom:1px solid var(--border);">'+
+      '<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;">'+
+        '<div style="flex:1;min-width:0;">'+
+          '<div style="font-size:.9rem;font-weight:500;margin-bottom:2px;">'+p.label+'</div>'+
+          '<div style="font-size:.73rem;color:var(--muted);">'+
+            'Objectif : <b style="color:var(--text);">'+fmtNum(p.total)+' F</b>'+
+            (p.date?' &nbsp;&#8226;&nbsp; Cible : '+fmtDate(p.date):'')+
+          '</div>'+
+        '</div>'+
+        '<button class="btn btn-danger" onclick="deleteProjet('+p.id+')">X</button>'+
+      '</div>'+
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap;">'+
+        '<div style="font-size:.78rem;color:var(--muted);">Montant disponible :</div>'+
+        '<input type="number" value="'+p.dispo+'" min="0" '+
+          'style="width:130px;padding:5px 9px;font-size:.83rem;" '+
+          'onchange="updateDispo('+p.id+',this.value)" placeholder="0">'+
+        '<div style="flex:1;text-align:right;">'+statusTxt+'</div>'+
+      '</div>'+
+      '<div style="display:flex;align-items:center;gap:8px;">'+
+        '<div class="pbar-bg" style="flex:1;margin-top:0;">'+
+          '<div class="pbar" style="background:'+barCol+';width:'+pct+'%"></div>'+
+        '</div>'+
+        '<span style="font-size:.75rem;color:var(--muted);flex-shrink:0;">'+pct+'%</span>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+renderProjets();
+
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(function(){});
+}
+</script>
+</body>
+</html>
